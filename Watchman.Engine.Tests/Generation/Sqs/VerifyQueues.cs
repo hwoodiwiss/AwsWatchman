@@ -1,4 +1,4 @@
-﻿using Moq;
+﻿using NSubstitute;
 using Watchman.AwsResources;
 using Watchman.AwsResources.Services.Sqs;
 using Watchman.Engine.Generation.Sqs;
@@ -7,43 +7,43 @@ namespace Watchman.Engine.Tests.Generation.Sqs
 {
     public static class VerifyQueues
     {
-        public static void ReturnsQueues(Mock<IResourceSource<QueueData>> queueSource, List<string> queueNames)
+        public static void ReturnsQueues(IResourceSource<QueueData> queueSource, List<string queueNames)
         {
             queueSource.Setup(x => x.GetResourceNamesAsync())
-                .ReturnsAsync(queueNames);
+                .Returns(queueNames);
         }
 
-        public static void EnsureLengthAlarm(Mock<IQueueAlarmCreator> alarmCreator,
+        public static void EnsureLengthAlarm(IQueueAlarmCreator alarmCreator,
             string queueName, bool isDryRun)
         {
             alarmCreator.Verify(x => x.EnsureLengthAlarm(queueName,
-                It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), isDryRun), Times.Once);
+                Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), isDryRun), Times.Once);
         }
 
-        public static void EnsureLengthAlarm(Mock<IQueueAlarmCreator> alarmCreator,
+        public static void EnsureLengthAlarm(IQueueAlarmCreator alarmCreator,
             string queueName, int threshold, bool isDryRun)
         {
             alarmCreator.Verify(x => x.EnsureLengthAlarm(queueName,
-                threshold, It.IsAny<string>(), It.IsAny<string>(), isDryRun), Times.Once);
+                threshold, Arg.Any<string>(), Arg.Any<string>(), isDryRun), Times.Once);
         }
 
-        public static void EnsureOldestMessageAlarm(Mock<IQueueAlarmCreator> alarmCreator,
+        public static void EnsureOldestMessageAlarm(IQueueAlarmCreator alarmCreator,
           string queueName, int threshold, bool isDryRun)
         {
             alarmCreator.Verify(x => x.EnsureOldestMessageAlarm(queueName,
-                threshold, It.IsAny<string>(), It.IsAny<string>(), isDryRun), Times.Once);
+                threshold, Arg.Any<string>(), Arg.Any<string>(), isDryRun), Times.Once);
         }
 
-        public static void NoLengthAlarm(Mock<IQueueAlarmCreator> alarmCreator, string queueName)
+        public static void NoLengthAlarm(IQueueAlarmCreator alarmCreator, string queueName)
         {
             alarmCreator.Verify(x => x.EnsureLengthAlarm(queueName,
-                It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()), Times.Never);
         }
 
-        public static void NoOldestMessageAlarm(Mock<IQueueAlarmCreator> alarmCreator, string queueName)
+        public static void NoOldestMessageAlarm(IQueueAlarmCreator alarmCreator, string queueName)
         {
             alarmCreator.Verify(x => x.EnsureOldestMessageAlarm(queueName,
-                It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()), Times.Never);
         }
     }
 }

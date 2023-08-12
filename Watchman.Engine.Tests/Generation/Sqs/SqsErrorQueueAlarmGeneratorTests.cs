@@ -1,4 +1,4 @@
-﻿using Moq;
+﻿using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources;
 using Watchman.AwsResources.Services.Sqs;
@@ -15,23 +15,23 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task MainAndErrorQueuesAreMonitoredAtDifferentThresholds()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "prod-pattern-queue", "prod-pattern-queue_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
 
@@ -47,14 +47,14 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task AlertingGroupThresholdsAreUsedByDefault()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "prod-pattern-queue", "prod-pattern-queue_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
             var sqs = config.AlertingGroups[0].Sqs;
@@ -65,11 +65,11 @@ namespace Watchman.Engine.Tests.Generation.Sqs
             sqs.Queues[0].OldestMessageThreshold = null;
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
 
@@ -82,14 +82,14 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task AlertingGroupValuesAreUsedByDefault()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "pattern1", "pattern1_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
             var sqs = config.AlertingGroups[0].Sqs;
@@ -102,11 +102,11 @@ namespace Watchman.Engine.Tests.Generation.Sqs
             sqs.Queues[0].Errors = null;
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
             await generator.GenerateAlarmsFor(config, RunMode.GenerateAlarms);
@@ -121,14 +121,14 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task QueueValuesAreUsedAsOverride()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "pattern1", "pattern1_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
             var sqs = config.AlertingGroups[0].Sqs;
@@ -142,11 +142,11 @@ namespace Watchman.Engine.Tests.Generation.Sqs
             sqs.Queues[0].OldestMessageThreshold = 12;
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
             await generator.GenerateAlarmsFor(config, RunMode.GenerateAlarms);
@@ -161,14 +161,14 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task AlertingGroupCanTurnOffErrorQueueMonitoring()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "pattern1", "pattern1_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
             var sqs = config.AlertingGroups[0].Sqs;
@@ -179,11 +179,11 @@ namespace Watchman.Engine.Tests.Generation.Sqs
             };
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
             await generator.GenerateAlarmsFor(config, RunMode.GenerateAlarms);
@@ -195,14 +195,14 @@ namespace Watchman.Engine.Tests.Generation.Sqs
         [Test]
         public async Task QueueCanTurnOffErrorQueueMonitoring()
         {
-            var queueSource = new Mock<IResourceSource<QueueData>>();
+            var queueSource = Substitute.For<IResourceSource<QueueData>>();
             VerifyQueues.ReturnsQueues(queueSource, new List<string> { "pattern1", "pattern1_error" });
 
-            var alarmCreator = new Mock<IQueueAlarmCreator>();
-            var snsTopicCreator = new Mock<ISnsTopicCreator>();
-            var snsSubscriptionCreator = new Mock<ISnsSubscriptionCreator>();
+            var alarmCreator = Substitute.For<IQueueAlarmCreator>();
+            var snsTopicCreator = Substitute.For<ISnsTopicCreator>();
+            var snsSubscriptionCreator = Substitute.For<ISnsSubscriptionCreator>();
 
-            var snsCreator = new SnsCreator(snsTopicCreator.Object, snsSubscriptionCreator.Object);
+            var snsCreator = new SnsCreator(snsTopicCreator, snsSubscriptionCreator);
 
             var config = MakePatternConfig();
             var sqs = config.AlertingGroups[0].Sqs;
@@ -217,11 +217,11 @@ namespace Watchman.Engine.Tests.Generation.Sqs
                 };
 
             var populator = new QueueNamePopulator(new ConsoleAlarmLogger(false),
-                queueSource.Object);
+                queueSource);
 
             var generator = new SqsAlarmGenerator(
-                new ConsoleAlarmLogger(false), queueSource.Object,
-                populator, alarmCreator.Object,
+                new ConsoleAlarmLogger(false), queueSource,
+                populator, alarmCreator,
                 snsCreator);
 
             await generator.GenerateAlarmsFor(config, RunMode.GenerateAlarms);

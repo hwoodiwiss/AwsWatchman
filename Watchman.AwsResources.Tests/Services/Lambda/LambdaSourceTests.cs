@@ -1,6 +1,6 @@
 ﻿using Amazon.Lambda;
 using Amazon.Lambda.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources.Services.Lambda;
 
@@ -42,23 +42,23 @@ namespace Watchman.AwsResources.Tests.Services.Lambda
                 }
             };
 
-            var lambdaMock = new Mock<IAmazonLambda>();
+            var lambdaMock = Substitute.For<IAmazonLambda>();
             lambdaMock.Setup(s => s.ListFunctionsAsync(
-                It.Is<ListFunctionsRequest>(r => r.Marker == null),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_firstPage);
+                Arg.Is<ListFunctionsRequest>(r => r.Marker == null),
+                Arg.Any<CancellationToken>()
+                )).Returns(_firstPage);
 
             lambdaMock.Setup(s => s.ListFunctionsAsync(
-                It.Is<ListFunctionsRequest>(r => r.Marker == "token-1"),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_secondPage);
+                Arg.Is<ListFunctionsRequest>(r => r.Marker == "token-1"),
+                Arg.Any<CancellationToken>()
+                )).Returns(_secondPage);
 
             lambdaMock.Setup(s => s.ListFunctionsAsync(
-                It.Is<ListFunctionsRequest>(r => r.Marker == "token-2"),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_thirdPage);
+                Arg.Is<ListFunctionsRequest>(r => r.Marker == "token-2"),
+                Arg.Any<CancellationToken>()
+                )).Returns(_thirdPage);
 
-            _lambdaSource = new LambdaSource(lambdaMock.Object);
+            _lambdaSource = new LambdaSource(lambdaMock);
         }
 
         [Test]

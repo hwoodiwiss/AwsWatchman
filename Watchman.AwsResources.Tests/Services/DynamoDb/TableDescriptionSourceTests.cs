@@ -1,6 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources.Services.DynamoDb;
 
@@ -49,26 +49,26 @@ namespace Watchman.AwsResources.Tests.Services.DynamoDb
                 }
             };
 
-            var dynamoDbMock = new Mock<IAmazonDynamoDB>();
+            var dynamoDbMock = Substitute.For<IAmazonDynamoDB>();
             dynamoDbMock.Setup(s => s.ListTablesAsync(
-                It.Is<string>(r => r == null), It.IsAny<CancellationToken>()
-            )).ReturnsAsync(_firstPage);
-
-            dynamoDbMock.Setup(s => s.ListTablesAsync(
-                It.Is<string>(r => r == firstTableName),
-                It.IsAny<CancellationToken>()
-            )).ReturnsAsync(_secondPage);
+                Arg.Is<string>(r => r == null), Arg.Any<CancellationToken>()
+            )).Returns(_firstPage);
 
             dynamoDbMock.Setup(s => s.ListTablesAsync(
-                It.Is<string>(r => r == secondTableName),
-                It.IsAny<CancellationToken>()
-            )).ReturnsAsync(_thirdPage);
+                Arg.Is<string>(r => r == firstTableName),
+                Arg.Any<CancellationToken>()
+            )).Returns(_secondPage);
 
-            dynamoDbMock.Setup(s => s.DescribeTableAsync(It.Is<string>(r => r == secondTableName),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(describeSecondTableResponse);
+            dynamoDbMock.Setup(s => s.ListTablesAsync(
+                Arg.Is<string>(r => r == secondTableName),
+                Arg.Any<CancellationToken>()
+            )).Returns(_thirdPage);
 
-            return new TableDescriptionSource(dynamoDbMock.Object);
+            dynamoDbMock.Setup(s => s.DescribeTableAsync(Arg.Is<string>(r => r == secondTableName),
+                    Arg.Any<CancellationToken>()))
+                .Returns(describeSecondTableResponse);
+
+            return new TableDescriptionSource(dynamoDbMock);
         }
 
         [Test]
@@ -145,24 +145,24 @@ namespace Watchman.AwsResources.Tests.Services.DynamoDb
         [Test]
         public async Task GetResourceAsync_ReturnsNullIfSdkThrowsNotFound()
         {
-            var dynamoDbFake = new Mock<IAmazonDynamoDB>();
+            var dynamoDbFake = Substitute.For<IAmazonDynamoDB>();
 
             dynamoDbFake
                 .Setup(s => s.ListTablesAsync(
-                    It.Is<string>(r => r == null), It.IsAny<CancellationToken>()
+                    Arg.Is<string>(r => r == null), Arg.Any<CancellationToken>()
                 ))
-                .ReturnsAsync(new ListTablesResponse()
+                .Returns(new ListTablesResponse()
                 {
                     TableNames = new List<string>() { "banana" }
                 });
 
             dynamoDbFake
-                .Setup(s => s.DescribeTableAsync("banana", It.IsAny<CancellationToken>()))
+                .Setup(s => s.DescribeTableAsync("banana", Arg.Any<CancellationToken>()))
                 .Throws(new ResourceNotFoundException("Table not found"))
                 //so we know we actually threw this error
                 .Verifiable();
 
-            var sut = new TableDescriptionSource(dynamoDbFake.Object);
+            var sut = new TableDescriptionSource(dynamoDbFake);
 
             var result = await sut.GetResourceAsync("banana");
 

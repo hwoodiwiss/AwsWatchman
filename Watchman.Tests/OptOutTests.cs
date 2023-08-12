@@ -75,7 +75,7 @@ namespace Watchman.Tests
             });
 
             var sut = ioc.Get<AlarmLoaderAndGenerator>();
-            
+
             // act
 
             await sut.LoadAndGenerateAlarms(RunMode.GenerateAlarms);

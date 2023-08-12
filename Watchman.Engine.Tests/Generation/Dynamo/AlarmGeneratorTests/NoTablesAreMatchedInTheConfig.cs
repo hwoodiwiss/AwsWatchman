@@ -1,5 +1,5 @@
 ﻿using Amazon.CloudWatch.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.Configuration;
 
@@ -31,7 +31,7 @@ namespace Watchman.Engine.Tests.Generation.Dynamo.AlarmGeneratorTests
             await generator.GenerateAlarmsFor(Config(), RunMode.GenerateAlarms);
 
             mockery.Cloudwatch.Verify(x =>
-                x.PutMetricAlarmAsync(It.IsAny<PutMetricAlarmRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+                x.PutMetricAlarmAsync(Arg.Any<PutMetricAlarmRequest>(), Arg.Any<CancellationToken>()), Times.Never);
         }
 
         private static void ConfigureTables(DynamoAlarmGeneratorMockery mockery)

@@ -1,6 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Moq;
+using NSubstitute;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Watchman.Configuration;
@@ -91,22 +91,22 @@ namespace Watchman.Tests.Dynamo
             var dynamo = ioc.GetMock<IAmazonDynamoDB>();
 
             dynamo
-                .Setup(x => x.ListTablesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ListTablesResponse()
+                .Setup(x => x.ListTablesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()))
+                .Returns(new ListTablesResponse()
                 {
                     TableNames = new List<string>() { "non-existent", "existent" }
                 });
 
             dynamo
-                .Setup(x => x.DescribeTableAsync("non-existent", It.IsAny<CancellationToken>()))
+                .Setup(x => x.DescribeTableAsync("non-existent", Arg.Any<CancellationToken>()))
                 .ThrowsAsync(new ResourceNotFoundException("bad"))
 
                 // so we know this actually got hit and the error was thrown
                 .Verifiable();
 
             dynamo
-                .Setup(x => x.DescribeTableAsync("existent", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new DescribeTableResponse()
+                .Setup(x => x.DescribeTableAsync("existent", Arg.Any<CancellationToken>()))
+                .Returns(new DescribeTableResponse()
                 {
                     Table = new TableDescription()
                     {

@@ -1,6 +1,6 @@
 ﻿using Amazon.AutoScaling;
 using Amazon.AutoScaling.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources.Services.AutoScaling;
 
@@ -11,7 +11,7 @@ namespace Watchman.AwsResources.Tests.Services.AutoScaling
     {
         private IAmazonAutoScaling CreateAutoScalingClientStub(params DescribeAutoScalingGroupsResponse[] pages)
         {
-            var clientStub = new Mock<IAmazonAutoScaling>();
+            var clientStub = Substitute.For<IAmazonAutoScaling>();
 
             var tokens = Enumerable
                 .Range(10000, pages.Length - 1)
@@ -31,13 +31,13 @@ namespace Watchman.AwsResources.Tests.Services.AutoScaling
 
                 clientStub
                 .Setup(x => x.DescribeAutoScalingGroupsAsync(
-                    It.Is<DescribeAutoScalingGroupsRequest>(r => r.NextToken == currentPageToken),
-                    It.IsAny<CancellationToken>())
+                    Arg.Is<DescribeAutoScalingGroupsRequest>(r => r.NextToken == currentPageToken),
+                    Arg.Any<CancellationToken>())
                  )
                 .Returns(Task.FromResult(page.Result));
             }
 
-            return clientStub.Object;
+            return clientStub;
         }
 
         [Test]

@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using NSubstitute;
+using NSubstitute;
 using StructureMap;
 using Watchman.IoC;
 
@@ -11,7 +12,7 @@ namespace Watchman.Tests.IoC
         public IContainer Container => _container.Value;
         private readonly Registry _registry = new Registry();
 
-       
+
         public TestingIocBootstrapper(StartupParameters startupParameters = null)
         {
             StartupParameters = startupParameters ?? new StartupParameters()
@@ -31,10 +32,10 @@ namespace Watchman.Tests.IoC
             return new Container(_registry);
         }
 
-        public Mock<T> GetMock<T>() where T : class
+        public T GetMock<T>() where T : class
         {
             var instance = Get<T>();
-            return Mock.Get(instance);
+            return Substitute.For<T>(instance);
         }
 
         public T Get<T>() => Container.GetInstance<T>();

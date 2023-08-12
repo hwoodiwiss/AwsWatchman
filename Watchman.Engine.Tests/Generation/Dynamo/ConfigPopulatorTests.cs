@@ -1,5 +1,5 @@
 ﻿using Amazon.DynamoDBv2.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources;
 using Watchman.Configuration;
@@ -402,13 +402,13 @@ namespace Watchman.Engine.Tests.Generation.Dynamo
                 tableNames.Add("woof");
             }
 
-            var logger = new Mock<IAlarmLogger>();
-            _tableLoaderMock = new Mock<IResourceSource<TableDescription>>();
+            var logger = Substitute.For<IAlarmLogger>();
+            _tableLoaderMock = Substitute.For<IResourceSource<TableDescription>>();
 
             _tableLoaderMock.Setup(t => t.GetResourceNamesAsync())
-                .ReturnsAsync(tableNames);
+                .Returns(tableNames);
 
-            return new TableNamePopulator(logger.Object, _tableLoaderMock.Object);
+            return new TableNamePopulator(logger, _tableLoaderMock);
         }
 
         private void ShouldHaveTable(IEnumerable<Table> tables, string name)

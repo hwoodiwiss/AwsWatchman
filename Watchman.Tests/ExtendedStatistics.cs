@@ -54,13 +54,13 @@ namespace Watchman.Tests
             });
 
             var sut = ioc.Get<AlarmLoaderAndGenerator>();
-            
+
             // act
 
             await sut.LoadAndGenerateAlarms(RunMode.GenerateAlarms);
 
             // assert
-            
+
             var alarmsByElb = fakeCloudFormation
                 .Stack("Watchman-test")
                 .AlarmsByDimension("LoadBalancerName");

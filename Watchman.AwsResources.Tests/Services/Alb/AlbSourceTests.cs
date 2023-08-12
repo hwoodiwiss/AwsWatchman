@@ -1,6 +1,6 @@
 ﻿using Amazon.ElasticLoadBalancingV2;
 using Amazon.ElasticLoadBalancingV2.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.AwsResources.Services.Alb;
 
@@ -51,28 +51,28 @@ namespace Watchman.AwsResources.Tests.Services.Alb
                 }
             };
 
-            var elbMock = new Mock<IAmazonElasticLoadBalancingV2>();
+            var elbMock = Substitute.For<IAmazonElasticLoadBalancingV2>();
             elbMock.Setup(s => s.DescribeLoadBalancersAsync(
-                It.Is<DescribeLoadBalancersRequest>(r => r.Marker == null),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_firstPage);
+                Arg.Is<DescribeLoadBalancersRequest>(r => r.Marker == null),
+                Arg.Any<CancellationToken>()
+                )).Returns(_firstPage);
 
             elbMock.Setup(s => s.DescribeLoadBalancersAsync(
-                It.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-1"),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_secondPage);
+                Arg.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-1"),
+                Arg.Any<CancellationToken>()
+                )).Returns(_secondPage);
 
             elbMock.Setup(s => s.DescribeLoadBalancersAsync(
-                It.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-2"),
-                It.IsAny<CancellationToken>()
-                )).ReturnsAsync(_thirdPage);
+                Arg.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-2"),
+                Arg.Any<CancellationToken>()
+                )).Returns(_thirdPage);
 
             elbMock.Setup(s => s.DescribeLoadBalancersAsync(
-                It.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-3"),
-                It.IsAny<CancellationToken>()
-            )).ReturnsAsync(_fourthPage);
+                Arg.Is<DescribeLoadBalancersRequest>(r => r.Marker == "token-3"),
+                Arg.Any<CancellationToken>()
+            )).Returns(_fourthPage);
 
-            _albSource = new AlbSource(elbMock.Object);
+            _albSource = new AlbSource(elbMock);
         }
 
         [Test]

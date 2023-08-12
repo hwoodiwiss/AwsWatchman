@@ -4,7 +4,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using Watchman.Configuration;
 using Watchman.Engine;
@@ -91,9 +91,9 @@ namespace Watchman.Tests
             var alarmsPut = new List<string>();
 
             ioc.GetMock<IAmazonCloudWatch>()
-                .Setup(x => x.PutMetricAlarmAsync(It.IsAny<PutMetricAlarmRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PutMetricAlarmAsync(Arg.Any<PutMetricAlarmRequest>(), Arg.Any<CancellationToken>()))
                 .Callback((PutMetricAlarmRequest a, CancellationToken _) => alarmsPut.Add(a.AlarmName))
-                .ReturnsAsync(new PutMetricAlarmResponse());
+                .Returns(new PutMetricAlarmResponse());
 
             var existingWatchmanAlarmsMatchingResources =
                 (configuredAlarmsAlreadyExist
@@ -120,8 +120,8 @@ namespace Watchman.Tests
                 .ToArray();
 
             ioc.GetMock<IAmazonCloudWatch>()
-                .Setup(x => x.DescribeAlarmsAsync(It.IsAny<DescribeAlarmsRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new DescribeAlarmsResponse()
+                .Setup(x => x.DescribeAlarmsAsync(Arg.Any<DescribeAlarmsRequest>(), Arg.Any<CancellationToken>()))
+                .Returns(new DescribeAlarmsResponse()
                 {
                     MetricAlarms = new List<MetricAlarm>()
                     {
@@ -144,8 +144,8 @@ namespace Watchman.Tests
                 });
 
             ioc.GetMock<IAmazonSimpleNotificationService>()
-                .Setup(x => x.CreateTopicAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new CreateTopicResponse()
+                .Setup(x => x.CreateTopicAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()))
+                .Returns(new CreateTopicResponse()
                 {
                     TopicArn = "topic-arn"
                 });
